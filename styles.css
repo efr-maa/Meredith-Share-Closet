@@ -17,7 +17,7 @@
 
 @font-face {
    font-family: "Playfair";
-   src: url("fonts/PlayfairDisplay-Regular.ttf") format("truetype");
+   src: url("../fonts/PlayfairDisplay-Regular.ttf") format("truetype");
 }
 
 html {
@@ -32,6 +32,7 @@ body {
    color: rgb(46, 26, 44);
    background-color: white;
    box-shadow: 0 0 25px rgba(70, 20, 60, 0.2);
+   overflow-x: hidden;
 }
 
 h1, h2, h3 {
@@ -39,14 +40,64 @@ h1, h2, h3 {
 }
 
 /* =========================
+   ACCESSIBILITY UTILITIES
+========================= */
+
+/* Visually hidden, but still announced by screen readers */
+.sr-only {
+   position: absolute;
+   width: 1px;
+   height: 1px;
+   overflow: hidden;
+   clip: rect(0, 0, 0, 0);
+   white-space: nowrap;
+   border: 0;
+}
+
+/* Hidden off-screen until a keyboard user tabs to it */
+.skip-link {
+   position: absolute;
+   top: -60px;
+   left: 10px;
+   z-index: 1000;
+   background-color: #4b174c;
+   color: white;
+   padding: 10px 18px;
+   border-radius: 8px;
+   text-decoration: none;
+   transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+   top: 10px;
+}
+
+/* =========================
    HEADER + NAVIGATION
 ========================= */
+
+.site-header {
+   position: sticky;
+   top: 0;
+   z-index: 100;
+   transition: box-shadow 0.25s ease;
+}
+
+.site-header.is-scrolled {
+   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+}
 
 header {
    background-color: rgb(75, 23, 76);
    color: white;
    text-align: center;
    padding: 30px 20px 20px;
+}
+
+.header-inner {
+   max-width: 900px;
+   margin: 0 auto;
+   position: relative;
 }
 
 header h1 {
@@ -59,10 +110,50 @@ header p {
    margin: 10px 0 20px;
 }
 
+/* Hamburger button — hidden on desktop, shown only at the mobile breakpoint */
+.nav-toggle {
+   display: none;
+   background: none;
+   border: 2px solid rgba(255, 255, 255, 0.6);
+   border-radius: 8px;
+   padding: 8px 10px;
+   margin-bottom: 12px;
+}
+
+.hamburger,
+.hamburger::before,
+.hamburger::after {
+   display: block;
+   width: 24px;
+   height: 3px;
+   background-color: white;
+   border-radius: 2px;
+}
+
+.hamburger {
+   position: relative;
+}
+
+.hamburger::before,
+.hamburger::after {
+   content: "";
+   position: absolute;
+   left: 0;
+}
+
+.hamburger::before {
+   top: -8px;
+}
+
+.hamburger::after {
+   top: 8px;
+}
+
 nav ul {
    list-style-type: none;
    display: flex;
    justify-content: center;
+   flex-wrap: wrap;
    gap: 12px;
    padding: 0;
 }
@@ -70,14 +161,21 @@ nav ul {
 nav a {
    color: white;
    text-decoration: none;
-   background-color: rgba(255,255,255,0.18);
+   background-color: rgba(255, 255, 255, 0.18);
    padding: 10px 18px;
    border-radius: 25px;
+   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 nav a:hover {
    background-color: white;
    color: #4b174c;
+}
+
+nav a[aria-current="page"] {
+   background-color: #f3c7d8;
+   color: #4b174c;
+   font-weight: bold;
 }
 
 /* =========================
@@ -92,13 +190,35 @@ section, aside {
    margin-bottom: 35px;
 }
 
+main > aside {
+   background-color: rgb(248, 241, 246);
+   border-left: 8px solid rgb(75, 23, 76);
+   border-radius: 10px;
+   padding: 22px;
+}
+
+/* =========================
+   SCROLL REVEAL ANIMATION
+========================= */
+
+.reveal {
+   opacity: 0;
+   transform: translateY(24px);
+   transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.is-visible {
+   opacity: 1;
+   transform: translateY(0);
+}
+
 /* =========================
    HOME PAGE STYLES
 ========================= */
 
 #hero {
    min-height: 380px;
-   background: linear-gradient(rgba(75,23,76,0.65), rgba(75,23,76,0.65)), url("images/mc2.jpg") center/cover no-repeat;
+   background: linear-gradient(rgba(75,23,76,0.65), rgba(75,23,76,0.65)), url("../images/mc2.jpg") center/cover no-repeat;
    border-radius: 25px;
    display: flex;
    align-items: center;
@@ -110,6 +230,13 @@ section, aside {
    max-width: 600px;
 }
 
+.hero-actions {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 14px;
+   margin-top: 14px;
+}
+
 .button {
    display: inline-block;
    padding: 12px 20px;
@@ -117,6 +244,55 @@ section, aside {
    color: #4b174c;
    text-decoration: none;
    border-radius: 25px;
+   font-weight: bold;
+   transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.button:hover {
+   transform: translateY(-2px);
+   background-color: #efb0c8;
+}
+
+.button.secondary {
+   background-color: transparent;
+   border: 2px solid white;
+   color: white;
+}
+
+.button.secondary:hover {
+   background-color: white;
+   color: #4b174c;
+}
+
+/* Impact / stats bar */
+#impact {
+   background: linear-gradient(135deg, rgba(75,23,76,0.06), rgba(243,199,216,0.3));
+   border-radius: 20px;
+   padding: 30px 20px;
+}
+
+.stat-row {
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: center;
+   gap: 40px;
+   text-align: center;
+}
+
+.stat-number {
+   font-family: "Playfair", Georgia, serif;
+   font-size: 2.6em;
+   font-weight: bold;
+   color: rgb(75, 23, 76);
+   line-height: 1;
+}
+
+.stat-label {
+   margin-top: 6px;
+   font-size: 0.9em;
+   text-transform: uppercase;
+   letter-spacing: 0.5px;
+   color: rgb(46, 26, 44);
 }
 
 /* =========================
@@ -125,6 +301,7 @@ section, aside {
 
 .card-row {
    display: flex;
+   flex-wrap: wrap;
    gap: 22px;
    justify-content: center;
 }
@@ -134,12 +311,43 @@ section, aside {
    background-color: #fff8fb;
    border-radius: 18px;
    box-shadow: 0 6px 14px rgba(70,20,60,0.15);
+   overflow: hidden;
 }
 
 .card img {
    width: 100%;
    height: 220px;
    object-fit: cover;
+}
+
+.card h3 {
+   margin: 14px 16px 4px;
+}
+
+.card p {
+   margin: 0 16px 16px;
+}
+
+/* How It Works steps */
+.step-row {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 22px;
+   justify-content: center;
+}
+
+.step {
+   flex: 1 1 220px;
+   text-align: center;
+   background-color: #fff8fb;
+   border-radius: 15px;
+   padding: 22px;
+   box-shadow: 0 4px 10px rgba(70,20,60,0.1);
+}
+
+.step h3 {
+   color: rgb(75, 23, 76);
+   margin-bottom: 8px;
 }
 
 /* =========================
@@ -170,9 +378,11 @@ tr:nth-of-type(even) {
    BROWSE PAGE STYLES
 ========================= */
 
-#browse-intro {
+#browse-intro,
+#donate-intro {
    background-color: rgb(248,241,246);
    border-left: 8px solid rgb(75,23,76);
+   border-radius: 10px;
    padding: 22px;
 }
 
@@ -181,6 +391,23 @@ tr:nth-of-type(even) {
    border-radius: 15px;
    padding: 14px;
    margin-bottom: 18px;
+}
+
+.category-box summary {
+   cursor: pointer;
+   font-family: "Playfair", Georgia, serif;
+   font-size: 1.3em;
+   font-weight: bold;
+   color: rgb(75, 23, 76);
+   padding: 6px 4px;
+}
+
+.category-box summary:hover {
+   color: #8a3b86;
+}
+
+.category-box[open] summary {
+   margin-bottom: 12px;
 }
 
 .item-options {
@@ -193,15 +420,18 @@ tr:nth-of-type(even) {
    width: 100%;
    height: 130px;
    object-fit: contain;
+   background-color: rgb(248,241,246);
+   border-radius: 8px;
 }
 
 /* =========================
-   FORM STYLES (BROWSE)
+   FORM STYLES (SHARED)
+   Used by #requestForm (browse), #donateForm (donate),
+   and #contactForm (about) — one set of rules instead of
+   repeating the same declarations per form.
 ========================= */
 
-
-
-#requestForm {
+.styled-form {
    max-width: 650px;
    margin: 0 auto;
    background-color: rgb(255, 248, 251);
@@ -210,11 +440,16 @@ tr:nth-of-type(even) {
    box-shadow: 0 3px 8px rgba(70, 20, 60, 0.12);
 }
 
-#requestForm fieldset {
+.styled-form fieldset {
    border: none;
+   margin-bottom: 20px;
 }
 
-#requestForm legend {
+.styled-form fieldset:last-of-type {
+   margin-bottom: 0;
+}
+
+.styled-form legend {
    background-color: rgb(75, 23, 76);
    color: white;
    border-radius: 10px;
@@ -223,7 +458,7 @@ tr:nth-of-type(even) {
    width: 100%;
 }
 
-#requestForm label {
+.styled-form label {
    display: block;
    margin-top: 12px;
    margin-bottom: 5px;
@@ -231,9 +466,9 @@ tr:nth-of-type(even) {
    color: rgb(75, 23, 76);
 }
 
-#requestForm input,
-#requestForm select,
-#requestForm textarea {
+.styled-form input,
+.styled-form select,
+.styled-form textarea {
    display: block;
    width: 100%;
    padding: 8px;
@@ -242,76 +477,166 @@ tr:nth-of-type(even) {
    font-family: Arial, Helvetica, sans-serif;
 }
 
-#requestForm input:focus:invalid,
-#requestForm select:focus:invalid,
-#requestForm textarea:focus:invalid {
+.styled-form input:focus:invalid,
+.styled-form select:focus:invalid,
+.styled-form textarea:focus:invalid {
    background-color: rgb(255, 230, 230);
    border: 2px solid red;
 }
 
-#requestForm input:focus:valid,
-#requestForm select:focus:valid,
-#requestForm textarea:focus:valid {
+.styled-form input:focus:valid,
+.styled-form select:focus:valid,
+.styled-form textarea:focus:valid {
    background-color: rgb(230, 255, 230);
    border: 2px solid green;
 }
 
-.formQuestion,
-.formNote {
-   margin-top: 12px;
+.formQuestion {
+   margin-top: 15px;
+   margin-bottom: 6px;
+   font-weight: bold;
    color: rgb(75, 23, 76);
 }
 
 .formNote {
+   margin-top: 8px;
    font-size: 0.9em;
+   color: rgb(75, 23, 76);
 }
 
-#requestForm .optionLabel {
+.optionLabel {
+   display: block;
+   margin-bottom: 10px;
    font-weight: normal;
    color: rgb(46, 26, 44);
 }
 
-#requestForm .optionLabel input {
+.optionLabel input {
    display: inline;
    width: auto;
-   margin-right: 6px;
+   margin-right: 8px;
 }
 
 .form-buttons {
    margin-top: 15px;
+   display: flex;
+   gap: 10px;
+   flex-wrap: wrap;
 }
 
 .form-buttons input {
    display: inline-block;
    width: auto;
+   padding: 10px 18px;
+   cursor: pointer;
+   border-radius: 25px;
+   font-weight: bold;
+}
+
+.form-buttons input[type="submit"] {
    background-color: rgb(75, 23, 76);
    color: white;
-   border: none;
-   padding: 10px 18px;
-   margin-right: 10px;
-   cursor: pointer;
+   border: 2px solid rgb(75, 23, 76);
+}
+
+.form-buttons input[type="submit"]:hover {
+   background-color: #612061;
+}
+
+.form-buttons input[type="submit"]:disabled {
+   opacity: 0.6;
+   cursor: not-allowed;
+}
+
+.form-buttons input[type="reset"] {
+   background-color: transparent;
+   color: rgb(75, 23, 76);
+   border: 2px solid rgb(75, 23, 76);
+}
+
+.form-buttons input[type="reset"]:hover {
+   background-color: rgb(248, 241, 246);
+}
+
+/* Honeypot field: kept in the DOM and in the tab order-free zone so bots
+   that auto-fill every input still trip it, but real visitors never see it. */
+.honeypot {
+   position: absolute;
+   left: -9999px;
+   width: 1px;
+   height: 1px;
+   overflow: hidden;
+}
+
+/* Live status message shown after a form is submitted via JS */
+.form-status {
+   min-height: 1.4em;
+   margin-top: 14px;
+   font-weight: bold;
+}
+
+.form-status--success {
+   color: #1a7a3c;
+}
+
+.form-status--error {
+   color: #b3261e;
+}
+
+/* Range slider + live numeric readout (donation condition rating) */
+.range-row {
+   display: flex;
+   align-items: center;
+   gap: 12px;
+}
+
+.range-row input[type="range"] {
+   display: inline-block;
+   width: auto;
+   flex: 1;
+}
+
+.range-row output {
+   min-width: 26px;
+   text-align: center;
+   font-weight: bold;
+   color: rgb(75, 23, 76);
+   background-color: rgb(248, 241, 246);
+   border-radius: 6px;
+   padding: 4px 8px;
 }
 
 /* =========================
    DONATE PAGE STYLES
 ========================= */
 
-/* Donate Form Width */
-
-#donateForm {
-   width: 95%;
-   max-width: 1000px;
-   margin: 20px 0;
+.donate-layout {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: flex-start;
+   gap: 30px;
 }
 
-/* Donate Aside Spacing */
+.donate-layout .styled-form {
+   flex: 2 1 480px;
+   max-width: none;
+   margin: 0;
+}
+
+#donate-aside {
+   flex: 1 1 260px;
+   background-color: rgb(255, 248, 251);
+   border-radius: 15px;
+   padding: 20px;
+   box-shadow: 0 3px 8px rgba(70, 20, 60, 0.12);
+}
 
 #donate-aside h2 {
    margin-bottom: 12px;
 }
 
 #donate-aside ul {
-   margin-bottom: 25px;
+   margin: 0 0 25px 20px;
 }
 
 #donate-aside h3 {
@@ -319,138 +644,20 @@ tr:nth-of-type(even) {
    margin-bottom: 10px;
 }
 
-#donate-intro {
-   background-color: rgb(248,241,246);
-   border-left: 8px solid rgb(75,23,76);
-   padding: 22px;
-}
-
 #donation-video video {
    display: block;
-   width: 500px;
-   height: 280px;
+   width: 100%;
+   max-width: 640px;
+   height: auto;
+   aspect-ratio: 16 / 9;
    margin: 20px auto;
    border-radius: 12px;
    background-color: rgb(46,26,44);
 }
 
-/* Donation Form Styles for Donate Page */
-
-#donateForm {
-   width: 90%;
-   max-width: 1000px;
-   margin: 20px auto;
-   background-color: rgb(255, 248, 251);
-   border-radius: 15px;
-   padding: 20px;
-   box-shadow: 0 3px 8px rgba(70, 20, 60, 0.12);
-}
-
-#donateForm fieldset {
-   border: none;
-   margin-bottom: 20px;
-}
-
-#donateForm legend {
-   background-color: rgb(75, 23, 76);
-   color: white;
-   border-radius: 10px;
-   padding: 8px;
-   margin-bottom: 15px;
-   width: 100%;
-}
-
-#donateForm label {
-   display: block;
-   margin-top: 12px;
-   margin-bottom: 5px;
-   font-weight: bold;
-   color: rgb(75, 23, 76);
-}
-
-#donateForm input,
-#donateForm select,
-#donateForm textarea {
-   display: block;
-   width: 100%;
-   padding: 8px;
-   border: 1px solid rgb(210, 190, 205);
-   border-radius: 7px;
-   font-family: Arial, Helvetica, sans-serif;
-}
-
-#donateForm input[type="radio"],
-#donateForm input[type="checkbox"] {
-   display: inline;
-   width: auto;
-   margin-right: 6px;
-}
-
-#donateForm .optionLabel {
-   display: block;
-   font-weight: normal;
-   color: rgb(46, 26, 44);
-}
-
-#donateForm input:focus:invalid,
-#donateForm select:focus:invalid,
-#donateForm textarea:focus:invalid {
-   background-color: rgb(255, 230, 230);
-   border: 2px solid red;
-}
-
-#donateForm input:focus:valid,
-#donateForm select:focus:valid,
-#donateForm textarea:focus:valid {
-   background-color: rgb(230, 255, 230);
-   border: 2px solid green;
-}
-
-
-/* Checkbox Styling (Donate Page) */
-
-#donateForm .formQuestion {
-   margin-top: 15px;
-   font-weight: bold;
-   color: rgb(75, 23, 76);
-}
-
-#donateForm .optionLabel {
-   display: block;
-   margin-bottom: 10px;
-   font-weight: normal;
-   color: rgb(46, 26, 44);
-}
-
-#donateForm .optionLabel input {
-   display: inline;
-   width: auto;
-   margin-right: 8px;
-}
-
-
-
 /* =========================
-   FOOTER
+   ABOUT PAGE STYLES
 ========================= */
-
-footer {
-   text-align: center;
-   background-color: #4b174c;
-   color: white;
-   padding: 18px;
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 600px) {
-   body { width: 100%; }
-   nav ul { flex-direction: column; }
-}
-
-
 
 #story {
    background-color: rgb(255, 248, 251);
@@ -464,6 +671,36 @@ footer {
    margin-bottom: 14px;
 }
 
+#story p:last-child {
+   margin-bottom: 0;
+}
+
+#process dl {
+   background-color: rgb(255, 248, 251);
+   border-radius: 15px;
+   padding: 22px;
+}
+
+#process dt {
+   font-weight: bold;
+   color: rgb(75, 23, 76);
+   margin-top: 14px;
+}
+
+#process dt:first-child {
+   margin-top: 0;
+}
+
+#process dd {
+   margin: 4px 0 0 18px;
+}
+
+.quote-intro {
+   font-style: italic;
+   color: rgb(90, 60, 88);
+   margin-bottom: 12px;
+}
+
 #quote-box blockquote {
    background-color: white;
    border-left: 6px solid rgb(75, 23, 76);
@@ -473,4 +710,78 @@ footer {
    font-size: 1.05em;
    font-style: italic;
    line-height: 1.6;
+}
+
+#contact address {
+   font-style: normal;
+   line-height: 1.9;
+   margin-top: 30px;
+   padding-top: 20px;
+   border-top: 1px solid rgb(230, 210, 225);
+}
+
+#contact address a {
+   color: rgb(75, 23, 76);
+   font-weight: bold;
+   text-decoration: none;
+}
+
+#contact address a:hover {
+   text-decoration: underline;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+footer {
+   text-align: center;
+   background-color: #4b174c;
+   color: white;
+   padding: 18px;
+}
+
+footer .back-to-top {
+   display: inline-block;
+   margin-top: 10px;
+   color: #f3c7d8;
+   text-decoration: underline;
+   font-size: 0.9em;
+}
+
+footer .back-to-top:hover {
+   color: white;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 700px) {
+   body {
+      width: 100%;
+   }
+
+   .nav-toggle {
+      display: inline-block;
+   }
+
+   #primary-nav {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      margin-top: 10px;
+   }
+
+   #primary-nav.is-open {
+      display: flex;
+   }
+
+   .donate-layout .styled-form {
+      flex-basis: 100%;
+   }
+
+   #donate-aside {
+      flex-basis: 100%;
+   }
 }
