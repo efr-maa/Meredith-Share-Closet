@@ -1,7 +1,7 @@
 /*
    Meredith Share Closet — main.js
    Shared behavior for every page: mobile nav, active-link highlighting,
-   scroll reveal animations, animated impact counters, sticky header shadow.
+   scroll reveal animations, animated impact counters.
 
    This file is safe to include on every page (index, browse, donate, about).
    Each feature checks that its target elements exist before running, so
@@ -13,7 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
   highlightActiveNavLink();
   initScrollReveal();
   initImpactCounters();
-  initStickyHeader();
+  initAccordionDetails();
+  initRangeOutputs();
+  initAjaxForms();
 });
 
 /* ------------------------------------------------------------------ */
@@ -129,16 +131,123 @@ function initImpactCounters() {
 }
 
 /* ------------------------------------------------------------------ */
-/* 5. Add a shadow to the header once the page scrolls                */
+/* 5. Accordion behavior for the browse-page category boxes           */
+/*    (only one <details> open at a time — closing the others when    */
+/*    a new one is opened keeps the long item lists manageable)       */
 /* ------------------------------------------------------------------ */
-function initStickyHeader() {
-  const header = document.querySelector('.site-header');
-  if (!header) return;
+function initAccordionDetails() {
+  const detailsList = document.querySelectorAll('.category-box');
+  if (!detailsList.length) return;
 
-  const onScroll = () => {
-    header.classList.toggle('is-scrolled', window.scrollY > 8);
-  };
+  detailsList.forEach((details) => {
+    details.addEventListener('toggle', () => {
+      if (details.open) {
+        detailsList.forEach((other) => {
+          if (other !== details) other.open = false;
+        });
+      }
+    });
+  });
+}
 
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+/* ------------------------------------------------------------------ */
+/* 6. Live numeric readout for range sliders (e.g. condition rating)  */
+/* ------------------------------------------------------------------ */
+function initRangeOutputs() {
+  const ranges = document.querySelectorAll('input[type="range"][data-output]');
+  if (!ranges.length) return;
+
+  ranges.forEach((range) => {
+    const output = document.getElementById(range.dataset.output);
+    if (!output) return;
+
+    const update = () => {
+      output.textContent = range.value;
+    };
+
+    range.addEventListener('input', update);
+    update();
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* 7. Submit forms via fetch instead of a full page reload            */
+/*                                                                    */
+/*    This is the fix for the "form doesn't submit anything" problem: */
+/*    each <form data-ajax> below still has a real action="" pointing */
+/*    at a Formspree endpoint, so it works even with JS disabled      */
+/*    (progressive enhancement). When JS *is* available, we intercept */
+/*    the submit, send it with fetch, and show a success/error        */
+/*    message in place instead of leaving the page.                   */
+/* ------------------------------------------------------------------ */
+function initAjaxForms() {
+  const forms = document.querySelectorAll('form[data-ajax]');
+  if (!forms.length) return;
+
+  forms.forEach((form) => {
+    const statusEl = form.querySelector('.form-status');
+    const submitBtn = form.querySelector('input[type="submit"], button[type="submit"]');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!form.action || form.action.includes('YOUR_FORM_ID')) {
+        if (statusEl) {
+          statusEl.textContent =
+            'Form endpoint not set up yet — see the setup note in the code comments.';
+          statusEl.className = 'form-status form-status--error';
+        }
+        return;
+      }
+
+      if (statusEl) {
+        statusEl.textContent = '';
+        statusEl.className = 'form-status';
+      }
+
+      const originalLabel = submitBtn ? submitBtn.value : null;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.value = 'Submitting…';
+      }
+
+      try {
+        const response = await fetch(form.action, {
+          method: form.method || 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+
+        if (response.ok) {
+          form.reset();
+          if (statusEl) {
+            statusEl.textContent =
+              "Thanks! Your submission was received — we'll follow up by email.";
+            statusEl.className = 'form-status form-status--success';
+          }
+        } else {
+          const data = await response.json().catch(() => null);
+          const message =
+            data && Array.isArray(data.errors)
+              ? data.errors.map((e) => e.message).join(', ')
+              : 'Something went wrong. Please try again or email us directly.';
+          if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.className = 'form-status form-status--error';
+          }
+        }
+      } catch (error) {
+        if (statusEl) {
+          statusEl.textContent =
+            'Network error — please check your connection and try again.';
+          statusEl.className = 'form-status form-status--error';
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          if (originalLabel) submitBtn.value = originalLabel;
+        }
+      }
+    });
+  });
 }
